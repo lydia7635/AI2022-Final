@@ -48,5 +48,6 @@ def parsePopulationData(filePath):
 
 if __name__=='__main__':
     df = parsePopulationData('./population.csv')
-    print(df['sexRatio'])
-    print(df)
+    df.to_csv('./populationAdj.csv', index=None)
+    # print(df['sexRatio'])
+    # print(df)
