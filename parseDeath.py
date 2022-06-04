@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 import re
 import csv
 import json
+import pandas as pd
 
 base_url = "https://www.cdc.gov.tw"
 city_codes = {
@@ -34,24 +35,27 @@ city_codes = {
 city_dict = {}
 
 def getDeathNum(total_num, text, city_dict2):
+    if not total_num:
+        for city_name, city_code in city_codes.items():
+            city_dict2[city_code].append(city_dict2[city_code][-1])
+        return
+
     for city_name, city_code in city_codes.items():
         city_search = re.search(rf'{city_name}[^\d,]*([\d,]+)', text)
         if city_search:
             death_accum = int(city_search.group(1).replace(",", ""))
         else:
             death_accum = 0
-        city_dict2[city_code]["death_accum"].append(death_accum)
-    city_dict2[city_code]["death_accum"][-1] = total_num
+        city_dict2[city_code].append(death_accum)
+    city_dict2[city_code][-1] = total_num
 
 
-def getDeathData(startDate):
+def getDeathData(date_list):
     city_dict2 = {}
     for city_code in city_codes.values():
-        city_dict2[city_code] = {
-            "death_new": [],
-            "death_accum": [],
-        }
-    dates = []
+        city_dict2[city_code] = []
+    date_index = len(date_list) - 1
+
     searchStop = False
 
     for page in range(1,11):
@@ -73,10 +77,14 @@ def getDeathData(startDate):
                             content_text.text)
             if m:
                 print(m.group(1), m.group(2))
-                getDeathNum(int(m.group(1).replace(",", "")), m.group(2), city_dict2)
-                
-                dates.append(date)
-                if date == startDate or date == "2022-03-01":
+                while date_index >= 0 and date_list[date_index] != date:
+                    getDeathNum(None, None, city_dict2)
+                    date_index -= 1
+                if date_index >= 0:
+                    getDeathNum(int(m.group(1).replace(",", "")), m.group(2), city_dict2)
+                    date_index -= 1
+
+                if date_index < 0:
                     searchStop = True
                     break
             print("----")
@@ -84,17 +92,18 @@ def getDeathData(startDate):
         if searchStop:
             break
 
+    date_len = len(date_list)
     for city, city_data in city_dict2.items():
         if city not in city_dict:
             city_dict[city] = {}
-        for i in range(len(dates)):
-            city_dict[city][dates[i]] = {
-                "death_accum": city_data["death_accum"][i],
+        for i in range(date_len):
+            city_dict[city][date_list[i]] = {
+                "death_accum": city_data[-i-1],
             }
             try:
-                city_dict[city][dates[i]]["death_new"] = city_data["death_accum"][i] - city_data["death_accum"][i+1]
+                city_dict[city][date_list[i]]["death_new"] = city_data[date_len-1-i] - city_data[date_len-i]
             except:
-                city_dict[city][dates[i]]["death_new"] = 0
+                city_dict[city][date_list[i]]["death_new"] = 0
 
 # output as timeline data. no one-hot
 def writeFile():
@@ -113,7 +122,9 @@ def writeFile():
 
 
 if __name__ == '__main__':
-    getDeathData("2022-04-01")
+    date_list = pd.date_range(start="2022-03-10", end="2022-06-04", freq='D').strftime("%Y-%m-%d").tolist()
+    getDeathData(date_list)
+
     print(json.dumps(city_dict, indent=2))
 
     writeFile()
