@@ -29,7 +29,7 @@ city_code = {
 }
 
 def parseDiagnoseData(filename):
-    diaDf = pd.read_csv(filename)
+    diaDf = pd.read_csv(filename,encoding='unicode_escape')
     diaDf.columns=[
             'index', 'guessDate', 'date', 'city', 'section', 'count', 'accumulateCount'   ]
     diaDf = diaDf[diaDf['section']=='全區']
@@ -52,7 +52,7 @@ def parseDiagnoseData(filename):
 def addDate(diaDf):
     
     start_date = datetime.datetime.strptime("20200128", "%Y%m%d")
-    end_date = datetime.datetime.strptime("20220601", "%Y%m%d")
+    end_date = datetime.datetime.strptime("20220607", "%Y%m%d")
    
     n_city = len(city_code)
     n_date = int((end_date - start_date).days) + 1
