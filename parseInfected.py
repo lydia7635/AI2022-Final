@@ -29,7 +29,7 @@ city_code = {
 }
 
 def parseDiagnoseData(filename):
-    diaDf = pd.read_csv(filename,encoding='unicode_escape')
+    diaDf = pd.read_csv(filename,encoding='Big5')
     diaDf.columns=[
             'index', 'guessDate', 'date', 'city', 'section', 'count', 'accumulateCount'   ]
     diaDf = diaDf[diaDf['section']=='全區']
@@ -39,9 +39,9 @@ def parseDiagnoseData(filename):
 
     diaDf = diaDf[['city', 'date', 'count', 'accumulateCount']]
 
-    for i in range(diaDf.shape[0]):
-        time = diaDf.iloc[i].loc['date'].split('/')
-        diaDf.loc[i, 'date'] = time[0] + '-' + "%02d" % int(time[1]) + '-' + "%02d" % int(time[2])
+    #for i in range(diaDf.shape[0]):
+    #    time = diaDf.iloc[i].loc['date'].split('/')
+    #    diaDf.loc[i, 'date'] = time[0] + '-' + "%02d" % int(time[1]) + '-' + "%02d" % int(time[2])
 
     # Rename city
     diaDf.loc[:, 'city'] = diaDf['city'].map(lambda x: city_code[x])
