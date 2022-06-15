@@ -57,3 +57,6 @@ COVID-19 Infected Prediction.
 |____ai/
   |____Jupyter notebooks for model training and testing
 ```
+
+## Note
+* 移除 requirements.txt
